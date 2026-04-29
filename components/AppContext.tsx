@@ -134,6 +134,7 @@ interface AppContextType {
   // Payment methods
   paymentMethods: PaymentMethod[];
   addPaymentMethod: (pm: Omit<PaymentMethod, 'id'>) => void;
+  deletePaymentMethod: (id: number) => void;
 
   // Employee requests
   requests: EmployeeRequest[];
@@ -295,6 +296,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPaymentMethods(prev => [...prev, { ...pm, id: Date.now() }]);
   }, []);
 
+  const deletePaymentMethod = useCallback((id: number) => {
+    setPaymentMethods(prev => prev.filter(p => p.id !== id));
+  }, []);
+
   // Employee requests
   const [requests, setRequests] = useState<EmployeeRequest[]>([
     { id: 1, type: 'سلفة', status: 'مقبول', date: '15 سبتمبر 2023', details: 'سلفة نقدية لمصاريف طارئة', amount: 5000 },
@@ -311,7 +316,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     employeeBalance, employeeTransactions, employeeDeposit, employeeWithdraw,
     toasts, showToast, dismissToast,
     bulkPayResults, setBulkPayResults, executeBulkPay, bulkPayExecuted,
-    paymentMethods, addPaymentMethod,
+    paymentMethods, addPaymentMethod, deletePaymentMethod,
     requests, addRequest,
     nextId,
   }), [
@@ -320,7 +325,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addEmployee, updateEmployee, deleteEmployee, toggleFreezeEmployee,
     companyDeposit, companyWithdraw, employeeDeposit, employeeWithdraw,
     showToast, dismissToast, setBulkPayResults, executeBulkPay,
-    addPaymentMethod, addRequest, nextId,
+    addPaymentMethod, deletePaymentMethod, addRequest, nextId,
   ]);
 
   return (

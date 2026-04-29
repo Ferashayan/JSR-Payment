@@ -2,10 +2,12 @@
 import { useState } from 'react';
 import { useModal } from '@/components/ModalContext';
 import { useApp } from '@/components/AppContext';
+import { useWalletModals, TransferModal, DepositModal } from '@/components/EmployeeWalletModals';
 
 export default function EmployeeDashboardPage() {
   const { openModal } = useModal();
-  const { employeeBalance, showToast, requests, addRequest } = useApp();
+  const { employeeBalance, showToast, requests, addRequest, paymentMethods, deletePaymentMethod } = useApp();
+  const { showTransfer, setShowTransfer, showDeposit, setShowDeposit } = useWalletModals();
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [advAmount, setAdvAmount] = useState('');
@@ -62,10 +64,10 @@ export default function EmployeeDashboardPage() {
             <div className="font-body-sm text-outline-variant mt-1">ريال سعودي (SAR)</div>
           </div>
           <div className="flex gap-2 mt-4">
-            <button className="flex-1 py-2 rounded-lg bg-primary-fixed text-on-primary-fixed font-label-sm hover:bg-primary-fixed-dim transition flex items-center justify-center gap-1">
+            <button onClick={() => setShowTransfer(true)} className="flex-1 py-2 rounded-lg bg-primary-fixed text-on-primary-fixed font-label-sm hover:bg-primary-fixed-dim transition flex items-center justify-center gap-1">
                 <span className="material-symbols-outlined text-[16px]">arrow_upward</span> تحويل
             </button>
-            <button className="flex-1 py-2 rounded-lg bg-white/10 text-white font-label-sm hover:bg-white/20 transition flex items-center justify-center gap-1">
+            <button onClick={() => setShowDeposit(true)} className="flex-1 py-2 rounded-lg bg-white/10 text-white font-label-sm hover:bg-white/20 transition flex items-center justify-center gap-1">
                 <span className="material-symbols-outlined text-[16px]">add</span> إيداع
             </button>
           </div>
@@ -96,35 +98,23 @@ export default function EmployeeDashboardPage() {
           </div>
           
           <div className="space-y-2">
-             <div className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-colors">
+            {paymentMethods.map(pm => (
+              <div key={pm.id} className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="w-8 h-8 rounded bg-secondary-container/20 text-secondary-container flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[16px]">account_balance</span>
-                   </div>
-                   <div>
-                      <div className="font-label-sm text-white text-xs">بنك الراجحي</div>
-                      <div className="text-[10px] text-outline-variant font-data-tabular">**** 4567</div>
-                   </div>
+                  <div className={`w-8 h-8 rounded ${pm.iconColor} flex items-center justify-center`}>
+                    <span className="material-symbols-outlined text-[16px]">{pm.icon}</span>
+                  </div>
+                  <div>
+                    <div className="font-label-sm text-white text-xs">{pm.label}</div>
+                    <div className="text-[10px] text-outline-variant font-data-tabular">{pm.subLabel}</div>
+                  </div>
                 </div>
-                <button className="text-error-container opacity-0 group-hover:opacity-100 transition-opacity">
-                   <span className="material-symbols-outlined text-[16px]">delete</span>
-                </button>
-             </div>
-             
-             <div className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-colors">
-                <div className="flex items-center gap-3">
-                   <div className="w-8 h-8 rounded bg-primary-fixed-dim/20 text-primary-fixed-dim flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[16px]">phone_iphone</span>
-                   </div>
-                   <div>
-                      <div className="font-label-sm text-white text-xs">STC Pay</div>
-                      <div className="text-[10px] text-outline-variant font-data-tabular">**** 0900</div>
-                   </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => { navigator.clipboard.writeText(pm.subLabel); showToast('تم النسخ'); }} className="w-7 h-7 rounded flex items-center justify-center text-outline-variant hover:text-white hover:bg-white/10 transition"><span className="material-symbols-outlined text-[14px]">content_copy</span></button>
+                  <button onClick={() => { if (window.confirm('هل أنت متأكد من حذف هذه الطريقة؟')) { deletePaymentMethod(pm.id); showToast('تم حذف طريقة الدفع'); } }} className="w-7 h-7 rounded flex items-center justify-center text-error-container hover:bg-error-container/10 transition"><span className="material-symbols-outlined text-[14px]">delete</span></button>
                 </div>
-                <button className="text-error-container opacity-0 group-hover:opacity-100 transition-opacity">
-                   <span className="material-symbols-outlined text-[16px]">delete</span>
-                </button>
-             </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -350,6 +340,9 @@ export default function EmployeeDashboardPage() {
           </div>
         </div>
       )}
+
+      <TransferModal open={showTransfer} onClose={() => setShowTransfer(false)} />
+      <DepositModal open={showDeposit} onClose={() => setShowDeposit(false)} />
     </div>
   );
 }

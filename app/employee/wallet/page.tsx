@@ -1,27 +1,12 @@
 'use client';
-import { useState } from 'react';
 import { useApp } from '@/components/AppContext';
 import { useModal } from '@/components/ModalContext';
+import { useWalletModals, TransferModal, DepositModal } from '@/components/EmployeeWalletModals';
 
 export default function EmployeeWalletPage() {
   const { openModal } = useModal();
-  const { employeeBalance, employeeTransactions, employeeWithdraw, showToast, paymentMethods } = useApp();
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [transferAmount, setTransferAmount] = useState('');
-  const [transferDetails, setTransferDetails] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleTransfer = () => {
-    const amount = parseInt(transferAmount);
-    if (!amount || amount <= 0) { showToast('أدخل مبلغاً صالحاً', 'error'); return; }
-    if (amount > employeeBalance) { showToast('الرصيد غير كافٍ', 'error'); return; }
-    setIsSaving(true);
-    setTimeout(() => {
-      employeeWithdraw(amount, transferDetails || 'تحويل بنكي');
-      showToast(`تم تحويل ${amount.toLocaleString()} ر.س بنجاح`);
-      setShowTransferModal(false); setTransferAmount(''); setTransferDetails(''); setIsSaving(false);
-    }, 800);
-  };
+  const { employeeBalance, employeeTransactions, showToast, paymentMethods, deletePaymentMethod } = useApp();
+  const { showTransfer, setShowTransfer, showDeposit, setShowDeposit } = useWalletModals();
 
   const totalIn = employeeTransactions.filter(t => t.numericAmount > 0).reduce((s, t) => s + t.numericAmount, 0);
   const totalOut = Math.abs(employeeTransactions.filter(t => t.numericAmount < 0).reduce((s, t) => s + t.numericAmount, 0));
@@ -34,8 +19,8 @@ export default function EmployeeWalletPage() {
           <div className="flex justify-between items-start mb-4"><span className="font-body-sm text-outline-variant">رصيدي المتاح</span><span className="material-symbols-outlined text-primary-fixed opacity-70 group-hover:opacity-100 transition-opacity">account_balance_wallet</span></div>
           <div><div className="font-h2 text-white glow-text">{employeeBalance.toLocaleString()}</div><div className="font-body-sm text-outline-variant mt-1">ريال سعودي (SAR)</div></div>
           <div className="flex gap-2 mt-4">
-            <button onClick={() => setShowTransferModal(true)} className="flex-1 py-2 rounded-lg bg-primary-fixed text-on-primary-fixed font-label-sm hover:bg-primary-fixed-dim transition flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[16px]">arrow_upward</span> تحويل</button>
-            <button onClick={() => showToast('تم طلب الإيداع بنجاح', 'info')} className="flex-1 py-2 rounded-lg bg-white/10 text-white font-label-sm hover:bg-white/20 transition flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[16px]">add</span> إيداع</button>
+            <button onClick={() => setShowTransfer(true)} className="flex-1 py-2 rounded-lg bg-primary-fixed text-on-primary-fixed font-label-sm hover:bg-primary-fixed-dim transition flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[16px]">arrow_upward</span> تحويل</button>
+            <button onClick={() => setShowDeposit(true)} className="flex-1 py-2 rounded-lg bg-white/10 text-white font-label-sm hover:bg-white/20 transition flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[16px]">add</span> إيداع</button>
           </div>
         </div>
         <div className="glass-panel rounded-xl p-md flex flex-col gap-3 relative overflow-hidden">
@@ -47,7 +32,13 @@ export default function EmployeeWalletPage() {
           <div className="flex justify-between items-center mb-1 text-white"><span className="font-label-sm text-outline-variant">طرق الدفع المحفوظة</span><button onClick={() => openModal('add_payment_method')} className="w-6 h-6 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"><span className="material-symbols-outlined text-[16px]">add</span></button></div>
           <div className="space-y-2">
             {paymentMethods.map(pm => (
-              <div key={pm.id} className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between"><div className="flex items-center gap-3"><div className={`w-8 h-8 rounded ${pm.iconColor} flex items-center justify-center`}><span className="material-symbols-outlined text-[16px]">{pm.icon}</span></div><div><div className="font-label-sm text-white text-xs">{pm.label}</div><div className="text-[10px] text-outline-variant font-data-tabular">{pm.subLabel}</div></div></div></div>
+              <div key={pm.id} className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between group hover:bg-white/10 transition-colors">
+                <div className="flex items-center gap-3"><div className={`w-8 h-8 rounded ${pm.iconColor} flex items-center justify-center`}><span className="material-symbols-outlined text-[16px]">{pm.icon}</span></div><div><div className="font-label-sm text-white text-xs">{pm.label}</div><div className="text-[10px] text-outline-variant font-data-tabular">{pm.subLabel}</div></div></div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => { navigator.clipboard.writeText(pm.subLabel); showToast('تم النسخ'); }} className="w-7 h-7 rounded flex items-center justify-center text-outline-variant hover:text-white hover:bg-white/10 transition"><span className="material-symbols-outlined text-[14px]">content_copy</span></button>
+                  <button onClick={() => { if (window.confirm('هل أنت متأكد من حذف هذه الطريقة؟')) { deletePaymentMethod(pm.id); showToast('تم حذف طريقة الدفع'); } }} className="w-7 h-7 rounded flex items-center justify-center text-error-container hover:bg-error-container/10 transition"><span className="material-symbols-outlined text-[14px]">delete</span></button>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -79,24 +70,8 @@ export default function EmployeeWalletPage() {
         </div>
       </div>
 
-      {showTransferModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-6" onClick={() => setShowTransferModal(false)}>
-          <div className="glass-panel w-full max-w-[450px] rounded-3xl border border-white/10 animate-in zoom-in-95 overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="p-6 border-b border-white/10 bg-white/[0.02]"><h2 className="font-h2 text-white">تحويل بنكي</h2><p className="font-body-sm text-outline-variant mt-1">الرصيد المتاح: {employeeBalance.toLocaleString()} ر.س</p></div>
-            <div className="p-6 flex flex-col gap-5">
-              <div><label className="block text-outline-variant font-label-sm mb-2">مبلغ التحويل (ر.س) *</label><input type="number" value={transferAmount} onChange={e => setTransferAmount(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-data-tabular outline-none focus:border-secondary-container transition" placeholder="5000" dir="ltr" /></div>
-              <div><label className="block text-outline-variant font-label-sm mb-2">الوصف</label><input value={transferDetails} onChange={e => setTransferDetails(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-body-sm outline-none focus:border-secondary-container transition" placeholder="سداد بطاقة / تحويل محلي" dir="rtl" /></div>
-              <div className="flex gap-3 mt-2">
-                <button onClick={() => setShowTransferModal(false)} className="flex-1 py-3 rounded-xl border border-white/20 text-white font-label-md hover:bg-white/10 transition">إلغاء</button>
-                <button onClick={handleTransfer} disabled={isSaving} className="flex-1 py-3 rounded-xl bg-primary-fixed text-on-primary-fixed font-label-md hover:bg-primary-fixed-dim transition flex items-center justify-center gap-2 disabled:opacity-50">
-                  {isSaving ? <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
-                  تحويل
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <TransferModal open={showTransfer} onClose={() => setShowTransfer(false)} />
+      <DepositModal open={showDeposit} onClose={() => setShowDeposit(false)} />
     </div>
   );
 }
