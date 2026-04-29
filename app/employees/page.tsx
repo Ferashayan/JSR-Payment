@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 
 // Added interface for employee typing
@@ -11,7 +12,7 @@ interface Employee {
   isFrozen?: boolean;
 }
 
-export default function EmployeesView() {
+export default function EmployeesPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
   const employees: Employee[] = [
@@ -80,7 +81,7 @@ export default function EmployeesView() {
       </div>
 
       {/* Center Stage */}
-      <div className="flex-grow glass-panel rounded-2xl p-xl flex flex-col relative overflow-hidden glow-effect">
+      <div className="grow glass-panel rounded-2xl p-xl flex flex-col relative overflow-hidden glow-effect">
          {/* Ambient glow */}
          <div className="absolute top-0 right-0 w-96 h-96 bg-primary-fixed/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
 
@@ -204,7 +205,7 @@ export default function EmployeesView() {
                     </div>
                  </div>
 
-                 <div className="bg-white/[0.03] rounded-xl p-3 border border-white/5 mb-5 flex flex-col gap-2">
+                 <div className="bg-white/3 rounded-xl p-3 border border-white/5 mb-5 flex flex-col gap-2">
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-outline-variant">المحفظة النشطة</span>
                       <span className="text-xs text-white font-data-tabular">{emp.wallet}</span>
@@ -240,7 +241,7 @@ export default function EmployeesView() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/[0.02] shrink-0">
+            <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/2 shrink-0">
                <div className="flex items-center gap-4">
                   <div className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold border shadow-inner shrink-0 ${selectedEmployee.isFrozen ? 'bg-error/10 border-error/20 text-error-container' : 'bg-primary-fixed/20 border-primary-fixed/30 text-primary-fixed'}`}>
                     {selectedEmployee.initial}
@@ -290,7 +291,7 @@ export default function EmployeesView() {
                {/* Transaction History */}
                <div>
                   <h3 className="font-h3 text-white mb-4">سجل العمليات</h3>
-                  <div className="bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden shadow-sm">
+                  <div className="bg-white/2 border border-white/10 rounded-2xl overflow-hidden shadow-sm">
                      <table className="w-full text-right border-collapse">
                         <thead className="bg-white/5 border-b border-white/10 font-label-sm text-outline-variant">
                           <tr>

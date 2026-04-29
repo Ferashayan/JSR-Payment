@@ -1,6 +1,6 @@
-import { useState } from 'react';
+'use client';
 
-export default function WalletView() {
+export default function WalletPage() {
   const transactions = [
     { type: 'إيداع', amount: '+ 2,000,000 ر.س', date: '28 أكتوبر 2023, 10:00 ص', details: 'تغذية المحفظة لمسير رواتب شهر أكتوبر', status: 'مكتمل' },
     { type: 'سحب', amount: '- 1,940,200 ر.س', date: '29 أكتوبر 2023, 08:30 ص', details: 'صرف الرواتب - مسير أكتوبر (142 موظف)', status: 'قيد التنفيذ' },
@@ -43,7 +43,7 @@ export default function WalletView() {
       </div>
 
       {/* Center Stage */}
-      <div className="flex-grow glass-panel rounded-2xl p-xl flex flex-col relative overflow-hidden glow-effect">
+      <div className="grow glass-panel rounded-2xl p-xl flex flex-col relative overflow-hidden glow-effect">
          <div className="absolute top-0 right-0 w-96 h-96 bg-primary-fixed/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
 
          <div className="flex justify-between items-center mb-xl relative z-10">
@@ -58,9 +58,9 @@ export default function WalletView() {
          </div>
 
          {/* Transactions List */}
-         <div className="flex-grow flex flex-col gap-4 relative z-10 overflow-y-auto pr-2 scrollbar-hide">
+         <div className="grow flex flex-col gap-4 relative z-10 overflow-y-auto pr-2 scrollbar-hide">
             {transactions.map((tx, i) => (
-               <div key={i} className="bg-white/[0.03] border border-white/10 rounded-xl p-5 flex items-center justify-between hover:bg-white/[0.06] transition-colors group">
+               <div key={i} className="bg-white/3 border border-white/10 rounded-xl p-5 flex items-center justify-between hover:bg-white/[0.06] transition-colors group">
                  <div className="flex items-center gap-5">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center border shrink-0 ${tx.type === 'إيداع' ? 'bg-secondary-container/10 border-secondary-container/30 text-secondary-container' : 'bg-white/5 border-white/10 text-white'}`}>
                        <span className="material-symbols-outlined">

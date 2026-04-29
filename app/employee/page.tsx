@@ -1,6 +1,9 @@
+'use client';
 import { useState } from 'react';
+import { useModal } from '@/components/ModalContext';
 
-export default function EmployeeDashboardView({ setActiveModal }: { setActiveModal: (v: string) => void }) {
+export default function EmployeeDashboardPage() {
+  const { openModal } = useModal();
   return (
     <div className="w-full max-w-[1600px] mx-auto flex gap-gutter items-stretch">
       {/* Sidebar: Personal Overview */}
@@ -59,7 +62,7 @@ export default function EmployeeDashboardView({ setActiveModal }: { setActiveMod
         <div className="glass-panel rounded-xl p-md flex flex-col gap-3 relative z-10">
           <div className="flex justify-between items-center mb-1 text-white">
             <span className="font-label-sm text-outline-variant">طرق الدفع المحفوظة</span>
-            <button onClick={() => setActiveModal('add_payment_method')} className="w-6 h-6 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+            <button onClick={() => openModal('add_payment_method')} className="w-6 h-6 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
               <span className="material-symbols-outlined text-[16px]">add</span>
             </button>
           </div>
@@ -99,7 +102,7 @@ export default function EmployeeDashboardView({ setActiveModal }: { setActiveMod
       </div>
 
       {/* Center Stage: Main Dashboard Card */}
-      <div className="flex-grow glass-panel rounded-2xl p-xl flex flex-col relative overflow-hidden glow-effect">
+      <div className="grow glass-panel rounded-2xl p-xl flex flex-col relative overflow-hidden glow-effect">
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary-fixed/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary-container/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
         
@@ -120,7 +123,7 @@ export default function EmployeeDashboardView({ setActiveModal }: { setActiveMod
         </div>
 
         {/* Current Salary Overview (Hero style) */}
-        <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 mb-8 relative z-10 flex items-center justify-between">
+        <div className="bg-white/2 border border-white/10 rounded-2xl p-6 mb-8 relative z-10 flex items-center justify-between">
            <div>
               <h3 className="font-label-md text-outline-variant mb-2">الراتب القادم (أكتوبر 2023)</h3>
               <div className="font-h1 text-white glow-text mb-4">24,500 <span className="font-h3 text-outline-variant">ر.س</span></div>
@@ -181,7 +184,7 @@ export default function EmployeeDashboardView({ setActiveModal }: { setActiveMod
         </div>
 
         {/* Content Grid */}
-        <div className="grid grid-cols-2 gap-lg flex-grow relative z-10">
+        <div className="grid grid-cols-2 gap-lg grow relative z-10">
            {/* Recent Transactions */}
            <div className="glass-panel rounded-xl p-md flex flex-col hover:bg-white/5 transition-colors group">
               <div className="flex justify-between items-center mb-md">
@@ -192,7 +195,7 @@ export default function EmployeeDashboardView({ setActiveModal }: { setActiveMod
                  <button className="text-xs text-outline-variant hover:text-white transition-colors">عرض الكل</button>
               </div>
               <div className="space-y-3">
-                 <div className="bg-white/[0.03] border border-white/5 rounded-lg p-3 flex justify-between items-center">
+                 <div className="bg-white/3 border border-white/5 rounded-lg p-3 flex justify-between items-center">
                     <div className="flex items-center gap-3">
                        <div className="w-10 h-10 rounded-full bg-secondary-container/10 border border-secondary-container/20 text-secondary-container flex items-center justify-center">
                           <span className="material-symbols-outlined text-[18px]">south_west</span>
@@ -204,7 +207,7 @@ export default function EmployeeDashboardView({ setActiveModal }: { setActiveMod
                     </div>
                     <div className="font-data-tabular font-bold text-secondary-container">+24,500 <span className="text-[10px]">ر.س</span></div>
                  </div>
-                 <div className="bg-white/[0.03] border border-white/5 rounded-lg p-3 flex justify-between items-center">
+                 <div className="bg-white/3 border border-white/5 rounded-lg p-3 flex justify-between items-center">
                     <div className="flex items-center gap-3">
                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white flex items-center justify-center">
                           <span className="material-symbols-outlined text-[18px]">north_east</span>
@@ -216,7 +219,7 @@ export default function EmployeeDashboardView({ setActiveModal }: { setActiveMod
                     </div>
                     <div className="font-data-tabular font-bold text-white">-4,000 <span className="text-[10px]">ر.س</span></div>
                  </div>
-                 <div className="bg-white/[0.03] border border-white/5 rounded-lg p-3 flex justify-between items-center">
+                 <div className="bg-white/3 border border-white/5 rounded-lg p-3 flex justify-between items-center">
                     <div className="flex items-center gap-3">
                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white flex items-center justify-center">
                           <span className="material-symbols-outlined text-[18px]">north_east</span>
@@ -240,7 +243,7 @@ export default function EmployeeDashboardView({ setActiveModal }: { setActiveMod
                  </h2>
               </div>
               <div className="space-y-4">
-                 <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 relative overflow-hidden">
+                 <div className="bg-white/2 border border-white/10 rounded-xl p-4 relative overflow-hidden">
                     <div className="absolute right-0 top-0 bottom-0 w-1 bg-orange-400/50"></div>
                     <div className="flex justify-between items-start mb-2">
                        <div>

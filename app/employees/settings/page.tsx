@@ -1,6 +1,6 @@
-import { useState } from 'react';
+'use client';
 
-export default function SettingsView() {
+export default function SettingsPage() {
   return (
     <div className="w-full max-w-[1600px] mx-auto flex gap-gutter items-stretch">
       {/* Sidebar */}
@@ -36,7 +36,7 @@ export default function SettingsView() {
       </div>
 
       {/* Center Stage */}
-      <div className="flex-grow glass-panel rounded-2xl p-xl flex flex-col relative overflow-hidden glow-effect">
+      <div className="grow glass-panel rounded-2xl p-xl flex flex-col relative overflow-hidden glow-effect">
          {/* Ambient glow */}
          <div className="absolute top-0 right-0 w-96 h-96 bg-primary-fixed/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
 
@@ -52,10 +52,10 @@ export default function SettingsView() {
          </div>
 
          {/* Forms Container */}
-         <div className="flex-grow flex flex-col gap-8 relative z-10 overflow-y-auto pr-2 scrollbar-hide">
+         <div className="grow flex flex-col gap-8 relative z-10 overflow-y-auto pr-2 scrollbar-hide">
             
             {/* Company Info */}
-            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
+            <div className="bg-white/2 border border-white/10 rounded-2xl p-6">
               <h2 className="font-label-md text-white mb-4 flex items-center gap-2">
                  <span className="material-symbols-outlined text-[20px] text-primary-fixed-dim">business</span>
                  بيانات الشركة
@@ -77,7 +77,7 @@ export default function SettingsView() {
             </div>
 
             {/* CR Upload */}
-            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
+            <div className="bg-white/2 border border-white/10 rounded-2xl p-6">
               <h2 className="font-label-md text-white mb-4 flex items-center gap-2">
                  <span className="material-symbols-outlined text-[20px] text-primary-fixed-dim">description</span>
                  السجل التجاري
@@ -86,7 +86,7 @@ export default function SettingsView() {
                  <div className="w-16 h-16 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-[32px] text-white/50">picture_as_pdf</span>
                  </div>
-                 <div className="flex-grow">
+                 <div className="grow">
                     <h3 className="text-white font-body-sm mb-1">Commercial_Register_2023.pdf</h3>
                     <p className="text-outline-variant text-xs">تم التحديث في 1 يناير 2023 - صالح حتى 31 ديسمبر 2024</p>
                  </div>
@@ -97,14 +97,14 @@ export default function SettingsView() {
             </div>
 
             {/* API Keys */}
-            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
+            <div className="bg-white/2 border border-white/10 rounded-2xl p-6">
               <h2 className="font-label-md text-white mb-4 flex items-center gap-2">
                  <span className="material-symbols-outlined text-[20px] text-primary-fixed-dim">key</span>
                  مفاتيح الربط (API Keys)
               </h2>
               <div className="space-y-4">
                  <div className="flex items-end gap-4">
-                    <div className="flex-grow">
+                    <div className="grow">
                       <label className="block text-outline-variant font-label-sm mb-2">مفتاح بيئة الإنتاج (Production Key)</label>
                       <input type="password" defaultValue="sk_live_1234567890abcdef" readOnly className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-data-tabular outline-none" />
                     </div>
@@ -113,7 +113,7 @@ export default function SettingsView() {
                     </button>
                  </div>
                  <div className="flex items-end gap-4">
-                    <div className="flex-grow">
+                    <div className="grow">
                       <label className="block text-outline-variant font-label-sm mb-2">مفتاح بيئة التطوير (Test Key)</label>
                       <input type="text" defaultValue="sk_test_0987654321fedcba" readOnly className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-data-tabular outline-none" />
                     </div>
