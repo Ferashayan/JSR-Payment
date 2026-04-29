@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "JSR Payment — جسر للمدفوعات",
+  "description": "منصة جسر لإدارة الرواتب والمدفوعات العابرة للحدود — B2B FinTech payroll platform enabling businesses to manage salaries, bulk payments, multi-currency wallets, and employee finances across the Middle East and beyond.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

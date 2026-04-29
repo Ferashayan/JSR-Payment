@@ -1,3 +1,6 @@
+'use client';
+import { useRouter } from 'next/navigation';
+
 export type NotificationType = {
   id: number;
   title: string;
@@ -7,8 +10,26 @@ export type NotificationType = {
   type: 'success' | 'warning' | 'info';
 };
 
-export default function NotificationsDropdown({ notifications, onMarkAllRead }: { notifications: NotificationType[]; onMarkAllRead: () => void }) {
+function getNotificationRoute(n: NotificationType): string {
+  const t = (n.title + ' ' + n.description).toLowerCase();
+  if (t.includes('إجازة') || t.includes('طلب')) return '/employee';
+  if (t.includes('راتب') || t.includes('إيداع') || t.includes('تحويل') || t.includes('دفع') || t.includes('محفظة')) return '/employee/wallet';
+  return '/employee';
+}
+
+export default function NotificationsDropdown({ notifications, onMarkAllRead, onNotificationClick }: {
+  notifications: NotificationType[];
+  onMarkAllRead: () => void;
+  onNotificationClick?: (id: number) => void;
+}) {
+  const router = useRouter();
   const unreadCount = notifications.filter(n => n.unread).length;
+
+  const handleClick = (n: NotificationType) => {
+    onNotificationClick?.(n.id);
+    router.push(getNotificationRoute(n));
+  };
+
   return (
     <div className="absolute bottom-[calc(100%+16px)] left-0 min-w-[320px] max-w-[360px] glass-panel rounded-2xl p-4 flex flex-col gap-3 shadow-[0_15px_40px_rgba(0,0,0,0.5)] border border-white/20 animate-in slide-in-from-bottom-2 fade-in z-50 text-right" dir="rtl">
       <div className="flex justify-between items-center border-b border-white/10 pb-2">
@@ -21,7 +42,11 @@ export default function NotificationsDropdown({ notifications, onMarkAllRead }: 
         {notifications.length === 0 ? (
           <div className="text-center text-outline-variant text-[13px] py-6">لا توجد إشعارات</div>
         ) : notifications.map((n) => (
-          <div key={n.id} className={`p-3 rounded-xl flex items-start gap-3 ${n.unread ? 'bg-white/10' : 'bg-white/5'} hover:bg-white/10 transition-colors cursor-pointer group`}>
+          <div
+            key={n.id}
+            onClick={() => handleClick(n)}
+            className={`p-3 rounded-xl flex items-start gap-3 ${n.unread ? 'bg-white/10' : 'bg-white/5'} hover:bg-white/15 transition-colors cursor-pointer group`}
+          >
             <div className={`w-9 h-9 mt-0.5 rounded-full flex items-center justify-center shrink-0 border ${
               n.type === 'success' ? 'bg-secondary-container/20 text-secondary-container border-secondary-container/30' :
               n.type === 'warning' ? 'bg-orange-400/20 text-orange-400 border-orange-400/30' : 'bg-primary-fixed/20 text-primary-fixed border-primary-fixed/30'
@@ -35,7 +60,10 @@ export default function NotificationsDropdown({ notifications, onMarkAllRead }: 
               <div className="font-body-sm text-outline-variant text-[12px] mb-1.5 leading-snug">{n.description}</div>
               <div className="text-[10px] text-white/50 font-data-tabular">{n.time}</div>
             </div>
-            {n.unread && <div className="w-1.5 h-1.5 bg-secondary-container rounded-full shrink-0 mt-2"></div>}
+            <div className="flex flex-col items-center gap-2">
+              {n.unread && <div className="w-1.5 h-1.5 bg-secondary-container rounded-full shrink-0 mt-2"></div>}
+              <span className="material-symbols-outlined text-[14px] text-outline-variant opacity-0 group-hover:opacity-100 transition-opacity rtl:-scale-x-100">arrow_forward_ios</span>
+            </div>
           </div>
         ))}
       </div>

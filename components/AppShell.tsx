@@ -1,15 +1,39 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import ModalSystem from './ModalSystem';
 import { ModalProvider } from './ModalContext';
+import { AppProvider, useApp } from './AppContext';
 
 import NavItem from './NavItem';
 import NotificationsDropdown, { type NotificationType } from './NotificationsDropdown';
 import ToastNotification from './ToastNotification';
 import ChatPanel from './ChatPanel';
+
+// ─── AI Smart Response Engine ────────────────────────────────────────────────
+const AI_RESPONSES: { keywords: string[]; response: string }[] = [
+  { keywords: ['راتب', 'رواتب', 'مسير', 'payroll'], response: 'بحسب البيانات الحالية، إجمالي مسير الرواتب لهذا الشهر هو 1,940,200 ر.س لـ 142 موظفاً نشطاً. الدورة الحالية: أكتوبر 2023. هل تود مراجعة التفاصيل أو تصدير التقرير؟' },
+  { keywords: ['موظف', 'موظفين', 'فريق', 'عدد'], response: 'لديك حالياً 142 موظفاً نشطاً عبر 3 أقسام: التطوير (45%)، المبيعات (30%)، والإدارة (25%). تم تعيين 5 موظفين جدد هذا الشهر. هل تود إضافة موظف جديد أو مراجعة قائمة الفريق؟' },
+  { keywords: ['تحويل', 'دفع', 'تحويلات', 'إيداع', 'سحب'], response: 'يمكنني مساعدتك في إجراء التحويلات. الرصيد المتاح في محفظة الشركة: 209,800 ر.س. للتحويل الجماعي، توجه لصفحة "الدفع الجماعي" وارفع ملف CSV. للتحويل الفردي، اختر الموظف من صفحة إدارة الموظفين.' },
+  { keywords: ['إجازة', 'إجازات', 'غياب'], response: 'يوجد حالياً طلب إجازة واحد قيد المراجعة. يمكنك الموافقة أو الرفض من صفحة المهام المعلقة. رصيد الإجازات المتبقي للموظف أحمد سالم: 15 يوم.' },
+  { keywords: ['سلفة', 'قرض', 'استقطاع'], response: 'يمكن للموظفين طلب سلف نقدية من حساباتهم الشخصية. يتم خصم السلفة على 3-6 أقساط شهرية من الراتب. هل تود مراجعة طلبات السلف المعلقة؟' },
+  { keywords: ['محفظة', 'رصيد', 'حساب'], response: 'رصيد محفظة الشركة الحالي: 209,800 ر.س. آخر عملية: صرف الرواتب بمبلغ 1,940,200 ر.س. يمكنك تغذية المحفظة أو تصدير كشف الحساب من صفحة المحفظة.' },
+  { keywords: ['تقرير', 'تصدير', 'إحصائيات'], response: 'يمكنني تجهيز التقارير التالية: 📊 تقرير مسير الرواتب الشهري، 📋 كشف حساب المحفظة، 👥 تقرير الموظفين والأقسام، 📈 تحليل التكاليف. أي تقرير تود تصديره؟' },
+  { keywords: ['مساعدة', 'help', 'كيف', 'شرح'], response: 'أنا المساعد الذكي لمنصة جسر Pay. يمكنني مساعدتك في:\n• إدارة الرواتب والمدفوعات\n• مراجعة بيانات الموظفين\n• تنفيذ التحويلات والدفع الجماعي\n• تصدير التقارير\n• الإجابة على استفساراتك المالية\n\nما الذي تحتاج مساعدة فيه؟' },
+  { keywords: ['صرف', 'اعتماد', 'تنفيذ'], response: 'لاعتماد مسير الرواتب، تأكد من:\n1. ✅ مراجعة بيانات البصمة (3 مهام معلقة)\n2. ✅ إضافة الحسابات البنكية للموظفين الجدد\n3. ✅ كفاية رصيد المحفظة\n\nهل تود المتابعة في اعتماد المسير؟' },
+];
+
+function getAIResponse(input: string): string {
+  const normalized = input.toLowerCase();
+  for (const entry of AI_RESPONSES) {
+    if (entry.keywords.some(kw => normalized.includes(kw))) {
+      return entry.response;
+    }
+  }
+  return 'شكراً لتواصلك! لقد قمت بتحليل طلبك. يمكنني مساعدتك في إدارة الرواتب، متابعة التحويلات، أو تصدير التقارير. أخبرني بالتفاصيل وسأقوم بالمتابعة فوراً.';
+}
 
 // ─── Main AppShell ──────────────────────────────────────────────────────────────
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -22,17 +46,26 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     { role: 'ai', content: 'مرحباً بك! أنا المساعد الذكي لمنصة Pay. كيف يمكنني مساعدتك لإنهاء مهام الرواتب اليوم؟' }
   ]);
 
-  const [notifications, setNotifications] = useState<NotificationType[]>([
-    { id: 1, title: 'تم تأكيد الدفع', description: 'تم تحويل رواتب شهر أكتوبر بنجاح', time: 'منذ ١٠ دقائق', unread: false, type: 'success' },
-    { id: 2, title: 'إيداع مكتمل', description: 'تم إيداع مبلغ 2,000,000 ر.س في محفظة الشركة', time: 'منذ ساعتين', unread: false, type: 'info' }
+  // Role detection
+  const isEmployeeRole = pathname === '/employee' || pathname.startsWith('/employee/');
+
+  // --- Role-based notifications ---
+  const [adminNotifications, setAdminNotifications] = useState<NotificationType[]>([
+    { id: 1, title: 'تم تأكيد الدفع', description: 'تم تحويل رواتب شهر أكتوبر بنجاح لـ 142 موظف', time: 'منذ ١٠ دقائق', unread: false, type: 'success' },
+    { id: 2, title: 'إيداع مكتمل', description: 'تم إيداع مبلغ 2,000,000 ر.س في محفظة الشركة', time: 'منذ ساعتين', unread: false, type: 'info' },
   ]);
+  const [employeeNotifications, setEmployeeNotifications] = useState<NotificationType[]>([
+    { id: 10, title: 'تم إيداع الراتب', description: 'تم إيداع راتب شهر سبتمبر بمبلغ 24,500 ر.س', time: 'منذ يوم', unread: false, type: 'success' },
+    { id: 11, title: 'طلب سلفة مقبول', description: 'تمت الموافقة على طلب السلفة بمبلغ 5,000 ر.س', time: 'منذ أسبوع', unread: false, type: 'info' },
+  ]);
+
+  const notifications = isEmployeeRole ? employeeNotifications : adminNotifications;
+  const setNotifications = isEmployeeRole ? setEmployeeNotifications : setAdminNotifications;
+
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [toastNotification, setToastNotification] = useState<NotificationType | null>(null);
 
   const unreadCount = notifications.filter(n => n.unread).length;
-
-  // Role detection
-  const isEmployeeRole = pathname === '/employee' || pathname.startsWith('/employee/');
 
   // Active nav detection
   const getActiveNav = () => {
@@ -42,7 +75,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       if (pathname === '/employee/settings') return 'settings';
       return 'dashboard';
     }
-    if (pathname === '/' || pathname === '/employees') return 'dashboard';
+    if (pathname === '/') return 'dashboard';
+    if (pathname === '/employees') return 'employees';
     if (pathname === '/employees/bulk-pay') return 'bulk_pay';
     if (pathname === '/employees/wallet') return 'wallet';
     if (pathname === '/employees/settings') return 'settings';
@@ -51,47 +85,62 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const activeNav = getActiveNav();
 
-  // Simulated live notification
+  // Stable ID counter
+  const notifIdRef = useRef(100);
+
+  // Simulated live admin notification
   useEffect(() => {
     const timer = setTimeout(() => {
-      const newNotif: NotificationType = {
-        id: Date.now(),
-        title: 'مهمة معلقة جديدة',
-        description: 'طلب إجازة/سلفة جديد في انتظار مراجعتك.',
+      notifIdRef.current += 1;
+      const adminNotif: NotificationType = {
+        id: notifIdRef.current,
+        title: 'طلب إجازة جديد',
+        description: 'الموظف أحمد سالم قدم طلب إجازة سنوية بانتظار موافقتك.',
         time: 'الآن',
         unread: true,
         type: 'warning'
       };
-      setNotifications(prev => [newNotif, ...prev]);
-      setToastNotification(newNotif);
+      setAdminNotifications(prev => [adminNotif, ...prev]);
+      setToastNotification(adminNotif);
       setTimeout(() => setToastNotification(null), 6000);
     }, 4000);
     return () => clearTimeout(timer);
   }, []);
 
+  const handleNotificationClick = useCallback((id: number) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+    setIsNotificationsOpen(false);
+  }, []);
+
   const handleSendMessage = () => {
     if (!chatInput.trim()) return;
-    setChatMessages(prev => [...prev, { role: 'user', content: chatInput }]);
+    const userMessage = chatInput;
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setChatInput('');
     setIsChatOpen(true);
     setIsTyping(true);
+    const delay = 800 + Math.random() * 1200;
     setTimeout(() => {
       setIsTyping(false);
       setChatMessages(prev => [...prev, {
         role: 'ai',
-        content: 'لقد قمت بتحليل طلبك وإعداد ملخص للإجراءات المطلوبة. أبلغني إن أردت المضي قدماً في تنفيذ الدفع الجماعي أو إرسال تنبيهات للموظفين.'
+        content: getAIResponse(userMessage)
       }]);
-    }, 1500);
+    }, delay);
   };
 
   return (
+    <AppProvider>
     <ModalProvider>
       <div className="min-h-screen flex flex-col font-body-md overflow-hidden text-on-background w-full">
         <ModalSystem />
+        <GlobalToasts />
 
         {/* Main Content */}
         <main className="flex-grow flex items-stretch justify-center p-gutter pt-xl pb-[220px] relative z-10 w-full overflow-hidden">
-          {children}
+          <div key={pathname} className="w-full flex items-stretch justify-center page-fade-in">
+            {children}
+          </div>
         </main>
 
         {/* Role Toggle */}
@@ -171,6 +220,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     <NotificationsDropdown
                       notifications={notifications}
                       onMarkAllRead={() => setNotifications(n => n.map(x => ({ ...x, unread: false })))}
+                      onNotificationClick={handleNotificationClick}
                     />
                   )}
                 </div>
@@ -192,7 +242,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Toast */}
-        {toastNotification && (
+        {toastNotification && !isEmployeeRole && (
           <ToastNotification notification={toastNotification} onClose={() => setToastNotification(null)} />
         )}
 
@@ -203,5 +253,42 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     </ModalProvider>
+    </AppProvider>
+  );
+}
+
+// ─── Global Toast Renderer ──────────────────────────────────────────────────
+function GlobalToasts() {
+  const { toasts, dismissToast } = useApp();
+  if (toasts.length === 0) return null;
+  return (
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] flex flex-col gap-3 pointer-events-auto" dir="rtl">
+      {toasts.map(toast => (
+        <div
+          key={toast.id}
+          className={`glass-panel rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[320px] shadow-[0_15px_40px_rgba(0,0,0,0.5)] border animate-in slide-in-from-bottom-2 fade-in ${
+            toast.type === 'success' ? 'border-secondary-container/30 bg-secondary-container/10' :
+            toast.type === 'error' ? 'border-error-container/30 bg-error-container/10' :
+            toast.type === 'warning' ? 'border-orange-400/30 bg-orange-400/10' :
+            'border-primary-fixed/30 bg-primary-fixed/10'
+          }`}
+        >
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+            toast.type === 'success' ? 'bg-secondary-container/20 text-secondary-container' :
+            toast.type === 'error' ? 'bg-error-container/20 text-error-container' :
+            toast.type === 'warning' ? 'bg-orange-400/20 text-orange-400' :
+            'bg-primary-fixed/20 text-primary-fixed'
+          }`}>
+            <span className="material-symbols-outlined text-[18px]">
+              {toast.type === 'success' ? 'check_circle' : toast.type === 'error' ? 'error' : toast.type === 'warning' ? 'warning' : 'info'}
+            </span>
+          </div>
+          <span className="font-body-sm text-white flex-1">{toast.message}</span>
+          <button onClick={() => dismissToast(toast.id)} className="text-outline-variant hover:text-white transition-colors">
+            <span className="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }

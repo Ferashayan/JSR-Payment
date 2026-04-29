@@ -1,9 +1,37 @@
 'use client';
 import { useState } from 'react';
 import { useModal } from '@/components/ModalContext';
+import { useApp } from '@/components/AppContext';
 
 export default function EmployeeDashboardPage() {
   const { openModal } = useModal();
+  const { employeeBalance, showToast, requests, addRequest } = useApp();
+  const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [advAmount, setAdvAmount] = useState('');
+  const [advReason, setAdvReason] = useState('');
+  const [advPayDate, setAdvPayDate] = useState('');
+  const [leaveType, setLeaveType] = useState('سنوية');
+  const [leaveStart, setLeaveStart] = useState('');
+  const [leaveEnd, setLeaveEnd] = useState('');
+  const [leaveNotes, setLeaveNotes] = useState('');
+
+  const handleAdvanceSubmit = () => {
+    const amt = parseInt(advAmount);
+    if (!amt || amt <= 0) { showToast('أدخل مبلغاً صالحاً', 'error'); return; }
+    addRequest({ type: 'سلفة', details: advReason || 'سلفة نقدية', amount: amt });
+    showToast('تم تقديم طلب سلفتك بنجاح، في انتظار الموافقة', 'info');
+    setShowAdvanceModal(false); setAdvAmount(''); setAdvReason(''); setAdvPayDate('');
+  };
+
+  const handleLeaveSubmit = () => {
+    if (!leaveStart || !leaveEnd) { showToast('حدد تاريخ البداية والنهاية', 'error'); return; }
+    addRequest({ type: 'إجازة', details: `إجازة ${leaveType}`, leaveType, startDate: leaveStart, endDate: leaveEnd, notes: leaveNotes });
+    showToast('تم تقديم طلب إجازتك بنجاح، في انتظار الموافقة', 'info');
+    setShowLeaveModal(false); setLeaveStart(''); setLeaveEnd(''); setLeaveNotes('');
+  };
+
+  const inputClass = 'w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-body-sm outline-none focus:border-secondary-container transition';
   return (
     <div className="w-full max-w-[1600px] mx-auto flex gap-gutter items-stretch">
       {/* Sidebar: Personal Overview */}
@@ -30,7 +58,7 @@ export default function EmployeeDashboardPage() {
             <span className="material-symbols-outlined text-primary-fixed opacity-70 group-hover:opacity-100 transition-opacity">account_balance_wallet</span>
           </div>
           <div>
-            <div className="font-h2 text-white glow-text">12,450</div>
+            <div className="font-h2 text-white glow-text">{employeeBalance.toLocaleString()}</div>
             <div className="font-body-sm text-outline-variant mt-1">ريال سعودي (SAR)</div>
           </div>
           <div className="flex gap-2 mt-4">
@@ -113,10 +141,10 @@ export default function EmployeeDashboardPage() {
             <p className="font-body-sm text-outline-variant">هنا تجد تفاصيل راتبك، ومحفظتك، والطلبات الشخصية</p>
           </div>
           <div className="flex gap-3">
-             <button className="glass-panel px-md py-sm rounded-lg font-label-md text-white hover:bg-white/10 transition flex items-center gap-2 border border-white/10">
+             <button onClick={() => setShowAdvanceModal(true)} className="glass-panel px-md py-sm rounded-lg font-label-md text-white hover:bg-white/10 transition flex items-center gap-2 border border-white/10">
                <span className="material-symbols-outlined text-[18px]">receipt_long</span> طلب سلفة
              </button>
-             <button className="glass-panel px-md py-sm rounded-lg font-label-md text-white hover:bg-white/10 transition flex items-center gap-2 border border-white/10">
+             <button onClick={() => setShowLeaveModal(true)} className="glass-panel px-md py-sm rounded-lg font-label-md text-white hover:bg-white/10 transition flex items-center gap-2 border border-white/10">
                <span className="material-symbols-outlined text-[18px]">event_busy</span> طلب إجازة
              </button>
           </div>
@@ -149,7 +177,7 @@ export default function EmployeeDashboardPage() {
            <div className="w-64">
               <div className="flex justify-between items-end mb-2">
                  <span className="font-body-sm text-white">تفصيل الراتب</span>
-                 <button className="text-xs text-primary-fixed hover:underline">عرض القسيمة</button>
+                 <button onClick={() => showToast('تم تحميل قسيمة الراتب بنجاح')} className="text-xs text-primary-fixed hover:underline">عرض القسيمة</button>
               </div>
               <div className="space-y-3">
                  <div>
@@ -239,26 +267,34 @@ export default function EmployeeDashboardPage() {
               <div className="flex justify-between items-center mb-md">
                  <h2 className="font-label-md text-white flex items-center gap-2">
                     <span className="material-symbols-outlined text-[20px] text-tertiary-fixed-dim">assignment</span>
-                    الطلبات قيد المراجعة
+                    الطلبات
                  </h2>
+                 <span className="px-2 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-data-tabular">{requests.length}</span>
               </div>
-              <div className="space-y-4">
-                 <div className="bg-white/2 border border-white/10 rounded-xl p-4 relative overflow-hidden">
-                    <div className="absolute right-0 top-0 bottom-0 w-1 bg-orange-400/50"></div>
-                    <div className="flex justify-between items-start mb-2">
-                       <div>
-                          <div className="font-label-sm text-white">طلب إجازة سنوية</div>
-                          <div className="text-xs text-outline-variant">من 15 نوفمبر إلى 25 نوفمبر (10 أيام)</div>
+              <div className="space-y-3 overflow-y-auto max-h-[260px] scrollbar-hide">
+                 {requests.map(req => (
+                    <div key={req.id} className="bg-white/[0.02] border border-white/10 rounded-xl p-4 relative overflow-hidden">
+                       <div className={`absolute right-0 top-0 bottom-0 w-1 ${
+                         req.status === 'قيد المراجعة' ? 'bg-orange-400/50' : req.status === 'مقبول' ? 'bg-secondary-container/50' : 'bg-error-container/50'
+                       }`}></div>
+                       <div className="flex justify-between items-start mb-1">
+                          <div>
+                             <div className="font-label-sm text-white">{req.type === 'سلفة' ? `طلب سلفة - ${req.amount?.toLocaleString()} ر.س` : `طلب إجازة ${req.leaveType || ''}`}</div>
+                             <div className="text-xs text-outline-variant">{req.details}</div>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded text-[10px] border ${
+                            req.status === 'قيد المراجعة' ? 'bg-orange-400/20 text-orange-400 border-orange-400/30' :
+                            req.status === 'مقبول' ? 'bg-secondary-container/20 text-secondary-container border-secondary-container/30' :
+                            'bg-error/20 text-error-container border-error/30'
+                          }`}>{req.status}</span>
                        </div>
-                       <span className="px-2 py-0.5 rounded text-[10px] bg-orange-400/20 text-orange-400 border border-orange-400/30">قيد المراجعة</span>
+                       <div className="mt-2 flex items-center gap-2 text-[10px] text-outline-variant">
+                          <span className="material-symbols-outlined text-[14px]">schedule</span>
+                          {req.date}
+                       </div>
                     </div>
-                    <div className="mt-3 flex items-center gap-2 text-[10px] text-outline-variant">
-                       <span className="material-symbols-outlined text-[14px]">schedule</span>
-                       تم التقديم في 20 أكتوبر 2023
-                    </div>
-                 </div>
-
-                 <div className="rounded-xl border border-dashed border-white/20 p-6 flex flex-col items-center justify-center text-center opacity-70 hover:opacity-100 hover:bg-white/5 transition-all cursor-pointer">
+                 ))}
+                 <div onClick={() => setShowAdvanceModal(true)} className="rounded-xl border border-dashed border-white/20 p-5 flex flex-col items-center justify-center text-center opacity-70 hover:opacity-100 hover:bg-white/5 transition-all cursor-pointer">
                     <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white mb-2">
                        <span className="material-symbols-outlined">add</span>
                     </div>
@@ -269,6 +305,51 @@ export default function EmployeeDashboardPage() {
         </div>
 
       </div>
+
+      {/* Advance Modal */}
+      {showAdvanceModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-6" onClick={() => setShowAdvanceModal(false)}>
+          <div className="glass-panel w-full max-w-[480px] rounded-3xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200" dir="rtl" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-white/10 bg-white/[0.02] flex justify-between items-center">
+              <div><h2 className="font-h2 text-white mb-1">طلب سلفة جديد</h2><p className="font-body-sm text-outline-variant">أدخل بيانات السلفة المطلوبة</p></div>
+              <button onClick={() => setShowAdvanceModal(false)} className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 text-outline-variant hover:text-white transition border border-white/10 flex items-center justify-center"><span className="material-symbols-outlined">close</span></button>
+            </div>
+            <div className="p-6 flex flex-col gap-4">
+              <div><label className="block text-outline-variant font-label-sm mb-2">المبلغ المطلوب (ر.س)</label><input type="number" value={advAmount} onChange={e => setAdvAmount(e.target.value)} placeholder="5000" className={inputClass} /></div>
+              <div><label className="block text-outline-variant font-label-sm mb-2">سبب الطلب</label><input value={advReason} onChange={e => setAdvReason(e.target.value)} placeholder="مصاريف طارئة" className={inputClass} /></div>
+              <div><label className="block text-outline-variant font-label-sm mb-2">تاريخ السداد المقترح</label><input type="date" value={advPayDate} onChange={e => setAdvPayDate(e.target.value)} className={inputClass} /></div>
+              <button onClick={handleAdvanceSubmit} className="w-full py-3 rounded-xl bg-secondary-container text-on-secondary-container font-label-md hover:bg-secondary-fixed transition mt-2">تقديم الطلب</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leave Modal */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-6" onClick={() => setShowLeaveModal(false)}>
+          <div className="glass-panel w-full max-w-[480px] rounded-3xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200" dir="rtl" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-white/10 bg-white/[0.02] flex justify-between items-center">
+              <div><h2 className="font-h2 text-white mb-1">طلب إجازة جديد</h2><p className="font-body-sm text-outline-variant">حدد نوع الإجازة والفترة</p></div>
+              <button onClick={() => setShowLeaveModal(false)} className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 text-outline-variant hover:text-white transition border border-white/10 flex items-center justify-center"><span className="material-symbols-outlined">close</span></button>
+            </div>
+            <div className="p-6 flex flex-col gap-4">
+              <div><label className="block text-outline-variant font-label-sm mb-2">نوع الإجازة</label>
+                <select value={leaveType} onChange={e => setLeaveType(e.target.value)} className={inputClass}>
+                  <option value="سنوية" className="bg-[#1e1e1e]">سنوية</option>
+                  <option value="مرضية" className="bg-[#1e1e1e]">مرضية</option>
+                  <option value="طارئة" className="bg-[#1e1e1e]">طارئة</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="block text-outline-variant font-label-sm mb-2">تاريخ البداية</label><input type="date" value={leaveStart} onChange={e => setLeaveStart(e.target.value)} className={inputClass} /></div>
+                <div><label className="block text-outline-variant font-label-sm mb-2">تاريخ النهاية</label><input type="date" value={leaveEnd} onChange={e => setLeaveEnd(e.target.value)} className={inputClass} /></div>
+              </div>
+              <div><label className="block text-outline-variant font-label-sm mb-2">ملاحظات</label><textarea value={leaveNotes} onChange={e => setLeaveNotes(e.target.value)} placeholder="ملاحظات إضافية (اختياري)" rows={2} className={inputClass} /></div>
+              <button onClick={handleLeaveSubmit} className="w-full py-3 rounded-xl bg-secondary-container text-on-secondary-container font-label-md hover:bg-secondary-fixed transition mt-2">تقديم الطلب</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

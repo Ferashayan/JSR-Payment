@@ -162,4 +162,77 @@
   .animate-bubble-pop {
     animation: bubble-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
+
+  /* ── Tailwind-animate compatible utilities ── */
+  @keyframes enter-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes enter-slide-from-bottom {
+    from { transform: translateY(var(--slide-offset, 2rem)); }
+    to { transform: translateY(0); }
+  }
+  @keyframes enter-slide-from-right {
+    from { transform: translateX(var(--slide-offset, 1rem)); }
+    to { transform: translateX(0); }
+  }
+  @keyframes enter-slide-from-left {
+    from { transform: translateX(calc(-1 * var(--slide-offset, 1rem))); }
+    to { transform: translateX(0); }
+  }
+  @keyframes enter-zoom {
+    from { opacity: 0; transform: scale(var(--zoom-start, 0.95)); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .animate-in {
+    animation-duration: 300ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: both;
+  }
+  .fade-in {
+    animation-name: enter-fade;
+    animation-duration: 250ms;
+    animation-fill-mode: both;
+  }
+  .animate-in.fade-in {
+    animation-name: enter-fade;
+  }
+  .animate-in.slide-in-from-bottom-2 {
+    --slide-offset: 0.5rem;
+    animation-name: enter-fade, enter-slide-from-bottom;
+  }
+  .animate-in.slide-in-from-bottom-8 {
+    --slide-offset: 2rem;
+    animation-name: enter-fade, enter-slide-from-bottom;
+  }
+  .animate-in.slide-in-from-right-4 {
+    --slide-offset: 1rem;
+    animation-name: enter-fade, enter-slide-from-right;
+  }
+  .animate-in.slide-in-from-left-4 {
+    --slide-offset: 1rem;
+    animation-name: enter-fade, enter-slide-from-left;
+  }
+  .animate-in.zoom-in-95 {
+    --zoom-start: 0.95;
+    animation-name: enter-zoom;
+  }
+  .animate-in.fade-in.slide-in-from-bottom-2 {
+    animation-name: enter-fade, enter-slide-from-bottom;
+    --slide-offset: 0.5rem;
+  }
+  .animate-in.fade-in.slide-in-from-bottom-8 {
+    animation-name: enter-fade, enter-slide-from-bottom;
+    --slide-offset: 2rem;
+  }
+}
+
+/* ── Page transition ── */
+@keyframes page-fade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-fade-in {
+  animation: page-fade 200ms ease-out both;
 }
