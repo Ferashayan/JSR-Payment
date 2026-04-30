@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, useEffect, type ReactNode } from 'react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 export interface Employee {
@@ -85,11 +85,14 @@ const INITIAL_EMPLOYEE_TRANSACTIONS: Transaction[] = [
 // ─── Helper ─────────────────────────────────────────────────────────────────────
 function formatAmount(n: number): string {
   const abs = Math.abs(n);
-  const formatted = abs.toLocaleString('en-US');
+  const formatted = abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return `${n >= 0 ? '+' : '-'} ${formatted} ر.س`;
 }
 
 function nowDate(): string {
+  if (typeof window === 'undefined') {
+    return '01 يناير 2024, 12:00 ص';
+  }
   const d = new Date();
   const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   const h = d.getHours();
@@ -97,6 +100,13 @@ function nowDate(): string {
   const period = h >= 12 ? 'م' : 'ص';
   const h12 = h % 12 || 12;
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${h12}:${m} ${period}`;
+}
+
+function generateStableId(): number {
+  if (typeof window === 'undefined') {
+    return 0;
+  }
+  return Date.now() + Math.random();
 }
 
 // ─── Context Type ───────────────────────────────────────────────────────────────
@@ -173,9 +183,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Employees
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const addEmployee = useCallback((emp: Omit<Employee, 'id'>) => {
-    setEmployees(prev => [...prev, { ...emp, id: Date.now() }]);
+    setEmployees(prev => [...prev, { ...emp, id: Math.floor(Math.random() * 1000000) }]);
   }, []);
 
   const updateEmployee = useCallback((id: number, data: Partial<Employee>) => {
@@ -199,7 +214,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const companyDeposit = useCallback((amount: number, details: string) => {
     setCompanyBalance(prev => prev + amount);
     setCompanyTransactions(prev => [{
-      id: Date.now(),
+      id: Math.floor(Math.random() * 1000000),
       type: 'إيداع',
       amount: formatAmount(amount),
       numericAmount: amount,
@@ -212,7 +227,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const companyWithdraw = useCallback((amount: number, details: string) => {
     setCompanyBalance(prev => prev - amount);
     setCompanyTransactions(prev => [{
-      id: Date.now(),
+      id: Math.floor(Math.random() * 1000000),
       type: 'سحب',
       amount: formatAmount(-amount),
       numericAmount: -amount,
@@ -229,7 +244,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const employeeDeposit = useCallback((amount: number, details: string) => {
     setEmployeeBalance(prev => prev + amount);
     setEmployeeTransactions(prev => [{
-      id: Date.now(),
+      id: Math.floor(Math.random() * 1000000),
       type: 'إيداع',
       amount: formatAmount(amount),
       numericAmount: amount,
@@ -242,7 +257,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const employeeWithdraw = useCallback((amount: number, details: string) => {
     setEmployeeBalance(prev => prev - amount);
     setEmployeeTransactions(prev => [{
-      id: Date.now(),
+      id: Math.floor(Math.random() * 1000000),
       type: 'سحب',
       amount: formatAmount(-amount),
       numericAmount: -amount,
@@ -256,7 +271,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
   const showToast = useCallback((message: string, type: ToastData['type'] = 'success') => {
-    const toast: ToastData = { id: Date.now() + Math.random(), message, type };
+    const toast: ToastData = { id: Math.floor(Math.random() * 10000000), message, type };
     setToasts(prev => [...prev, toast]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== toast.id));
@@ -275,7 +290,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const totalValid = bulkPayResults.filter(r => r.valid).reduce((sum, r) => sum + r.amount, 0);
     setCompanyBalance(prev => prev - totalValid);
     setCompanyTransactions(prev => [{
-      id: Date.now(),
+      id: Math.floor(Math.random() * 1000000),
       type: 'سحب',
       amount: formatAmount(-totalValid),
       numericAmount: -totalValid,
@@ -293,7 +308,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   ]);
 
   const addPaymentMethod = useCallback((pm: Omit<PaymentMethod, 'id'>) => {
-    setPaymentMethods(prev => [...prev, { ...pm, id: Date.now() }]);
+    setPaymentMethods(prev => [...prev, { ...pm, id: Math.floor(Math.random() * 1000000) }]);
   }, []);
 
   const deletePaymentMethod = useCallback((id: number) => {
@@ -307,7 +322,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   ]);
 
   const addRequest = useCallback((req: Omit<EmployeeRequest, 'id' | 'date' | 'status'>) => {
-    setRequests(prev => [{ ...req, id: Date.now(), date: nowDate(), status: 'قيد المراجعة' }, ...prev]);
+    setRequests(prev => [{ ...req, id: Math.floor(Math.random() * 1000000), date: nowDate(), status: 'قيد المراجعة' }, ...prev]);
   }, []);
 
   const value = useMemo(() => ({

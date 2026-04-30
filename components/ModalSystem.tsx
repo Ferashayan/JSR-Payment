@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useModal } from './ModalContext';
 import { useApp } from './AppContext';
+import { formatNumber } from '@/lib/formatters';
 
 // ─── Modal Metadata ─────────────────────────────────────────────────────────────
 type ModalMeta = { title: string; icon: string; color: string; description: string };
@@ -53,7 +54,7 @@ function BarChart({ items }: { items: { label: string; value: number; color?: st
         return (
           <div key={i} className="flex-1 flex flex-col items-center gap-1 group cursor-pointer min-w-0">
             <span className="text-[10px] text-outline-variant opacity-0 group-hover:opacity-100 transition font-data-tabular whitespace-nowrap">
-              {item.value.toLocaleString()}
+              {formatNumber(item.value)}
             </span>
             <div className="w-full rounded-t-sm hover:opacity-90 transition-all" style={{ height: h, backgroundColor: INLINE_BAR_COLORS[i % INLINE_BAR_COLORS.length], opacity: 0.75 }} />
             <span className="text-[9px] text-outline-variant text-center leading-tight mt-1 truncate w-full">{item.label}</span>
@@ -82,7 +83,7 @@ function DonutChart({ items }: { items: { label: string; value: number; color?: 
             strokeDasharray={`${dashLen} ${circ - dashLen}`} strokeDashoffset={dashOff}
             strokeLinecap="round" style={{ transition: 'stroke-dasharray 0.5s' }} />;
         })}
-        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" className="fill-white text-[14px] font-bold">{total.toLocaleString()}</text>
+        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" className="fill-white text-[14px] font-bold">{formatNumber(total)}</text>
       </svg>
       <div className="flex flex-col gap-2">
         {items.map((item, i) => (
@@ -208,13 +209,13 @@ function DataModal({ modalKey }: { modalKey: string }) {
 
   // Dynamic description with total
   const description = (() => {
-    if (modalKey === 'net_salary') return `إجمالي صافي الرواتب: ${totalNet.toLocaleString()} ريال سعودي`;
-    if (modalKey === 'deductions') return `إجمالي الاستقطاعات: ${totalDed.toLocaleString()} ريال سعودي`;
-    if (modalKey === 'bonuses') return `إجمالي البدلات والمكافآت: ${totalAllow.toLocaleString()} ريال سعودي`;
-    if (modalKey === 'overtime') return `إجمالي العمل الإضافي: ${totalOT.toLocaleString()} ريال سعودي`;
+    if (modalKey === 'net_salary') return `إجمالي صافي الرواتب: ${formatNumber(totalNet)} ريال سعودي`;
+    if (modalKey === 'deductions') return `إجمالي الاستقطاعات: ${formatNumber(totalDed)} ريال سعودي`;
+    if (modalKey === 'bonuses') return `إجمالي البدلات والمكافآت: ${formatNumber(totalAllow)} ريال سعودي`;
+    if (modalKey === 'overtime') return `إجمالي العمل الإضافي: ${formatNumber(totalOT)} ريال سعودي`;
     if (modalKey === 'active_employees') return `عدد الموظفين النشطين: ${activeCount} موظف من أصل ${employees.length}`;
-    if (modalKey === 'total_salaries') return `إجمالي صرف الرواتب لهذا الشهر: ${totalNet.toLocaleString()} ريال سعودي`;
-    if (modalKey === 'departments') return `إجمالي ميزانية الرواتب: ${employees.reduce((s, e) => s + e.salary, 0).toLocaleString()} ريال سعودي`;
+    if (modalKey === 'total_salaries') return `إجمالي صرف الرواتب لهذا الشهر: ${formatNumber(totalNet)} ريال سعودي`;
+    if (modalKey === 'departments') return `إجمالي ميزانية الرواتب: ${formatNumber(employees.reduce((s, e) => s + e.salary, 0))} ريال سعودي`;
     return meta.description;
   })();
 

@@ -236,3 +236,19 @@
 .page-fade-in {
   animation: page-fade 200ms ease-out both;
 }
+
+.markdown-content strong {
+  font-weight: bold;
+  color: #DAE2FD; /* لون فاتح متناسق مع هويتك الزجاجية */
+}
+
+.markdown-content ul {
+  list-style-type: disc;
+  padding-right: 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.markdown-content p {
+  margin-bottom: 0.5rem;
+}
+

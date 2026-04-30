@@ -12,27 +12,38 @@ import NotificationsDropdown, { type NotificationType } from './NotificationsDro
 import ToastNotification from './ToastNotification';
 import ChatPanel from './ChatPanel';
 
-// ─── AI Smart Response Engine ────────────────────────────────────────────────
-const AI_RESPONSES: { keywords: string[]; response: string }[] = [
-  { keywords: ['راتب', 'رواتب', 'مسير', 'payroll'], response: 'بحسب البيانات الحالية، إجمالي مسير الرواتب لهذا الشهر هو 1,940,200 ر.س لـ 142 موظفاً نشطاً. الدورة الحالية: أكتوبر 2023. هل تود مراجعة التفاصيل أو تصدير التقرير؟' },
-  { keywords: ['موظف', 'موظفين', 'فريق', 'عدد'], response: 'لديك حالياً 142 موظفاً نشطاً عبر 3 أقسام: التطوير (45%)، المبيعات (30%)، والإدارة (25%). تم تعيين 5 موظفين جدد هذا الشهر. هل تود إضافة موظف جديد أو مراجعة قائمة الفريق؟' },
-  { keywords: ['تحويل', 'دفع', 'تحويلات', 'إيداع', 'سحب'], response: 'يمكنني مساعدتك في إجراء التحويلات. الرصيد المتاح في محفظة الشركة: 209,800 ر.س. للتحويل الجماعي، توجه لصفحة "الدفع الجماعي" وارفع ملف CSV. للتحويل الفردي، اختر الموظف من صفحة إدارة الموظفين.' },
-  { keywords: ['إجازة', 'إجازات', 'غياب'], response: 'يوجد حالياً طلب إجازة واحد قيد المراجعة. يمكنك الموافقة أو الرفض من صفحة المهام المعلقة. رصيد الإجازات المتبقي للموظف أحمد سالم: 15 يوم.' },
-  { keywords: ['سلفة', 'قرض', 'استقطاع'], response: 'يمكن للموظفين طلب سلف نقدية من حساباتهم الشخصية. يتم خصم السلفة على 3-6 أقساط شهرية من الراتب. هل تود مراجعة طلبات السلف المعلقة؟' },
-  { keywords: ['محفظة', 'رصيد', 'حساب'], response: 'رصيد محفظة الشركة الحالي: 209,800 ر.س. آخر عملية: صرف الرواتب بمبلغ 1,940,200 ر.س. يمكنك تغذية المحفظة أو تصدير كشف الحساب من صفحة المحفظة.' },
-  { keywords: ['تقرير', 'تصدير', 'إحصائيات'], response: 'يمكنني تجهيز التقارير التالية: 📊 تقرير مسير الرواتب الشهري، 📋 كشف حساب المحفظة، 👥 تقرير الموظفين والأقسام، 📈 تحليل التكاليف. أي تقرير تود تصديره؟' },
-  { keywords: ['مساعدة', 'help', 'كيف', 'شرح'], response: 'أنا المساعد الذكي لمنصة جسر Pay. يمكنني مساعدتك في:\n• إدارة الرواتب والمدفوعات\n• مراجعة بيانات الموظفين\n• تنفيذ التحويلات والدفع الجماعي\n• تصدير التقارير\n• الإجابة على استفساراتك المالية\n\nما الذي تحتاج مساعدة فيه؟' },
-  { keywords: ['صرف', 'اعتماد', 'تنفيذ'], response: 'لاعتماد مسير الرواتب، تأكد من:\n1. ✅ مراجعة بيانات البصمة (3 مهام معلقة)\n2. ✅ إضافة الحسابات البنكية للموظفين الجدد\n3. ✅ كفاية رصيد المحفظة\n\nهل تود المتابعة في اعتماد المسير؟' },
-];
+// ─── AI Agent API ────────────────────────────────────────────────────────────
+const AGENT_API_URL = process.env.NEXT_PUBLIC_AGENT_API_URL || 'http://localhost:8000';
 
-function getAIResponse(input: string): string {
-  const normalized = input.toLowerCase();
-  for (const entry of AI_RESPONSES) {
-    if (entry.keywords.some(kw => normalized.includes(kw))) {
-      return entry.response;
+async function sendMessageToAgent(
+  message: string,
+  agentType: 'hr' | 'employee',
+  sessionId: string,
+  employeeId?: string
+): Promise<string> {
+  try {
+    const res = await fetch(`${AGENT_API_URL}/api/v1/chat/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        session_id: sessionId,
+        agent_type: agentType,
+        employee_id: employeeId || null,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
     }
+
+    const data = await res.json();
+    return data.reply;
+  } catch (error: any) {
+    console.error('Agent API Error:', error);
+    return `⚠️ عذراً، حدث خطأ في الاتصال بالمساعد الذكي. يرجى المحاولة لاحقاً.\n\n(${error.message})`;
   }
-  return 'شكراً لتواصلك! لقد قمت بتحليل طلبك. يمكنني مساعدتك في إدارة الرواتب، متابعة التحويلات، أو تصدير التقارير. أخبرني بالتفاصيل وسأقوم بالمتابعة فوراً.';
 }
 
 // ─── Main AppShell ──────────────────────────────────────────────────────────────
@@ -43,11 +54,33 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [chatMessages, setChatMessages] = useState([
-    { role: 'ai', content: 'مرحباً بك! أنا المساعد الذكي لمنصة Pay. كيف يمكنني مساعدتك لإنهاء مهام الرواتب اليوم؟' }
+    { role: 'ai', content: 'مرحباً بك! أنا المساعد الذكي لمنصة جسر Pay. كيف يمكنني مساعدتك اليوم؟' }
   ]);
 
   // Role detection
   const isEmployeeRole = pathname === '/employee' || pathname.startsWith('/employee/');
+
+  // Session ID — unique per role to keep histories separate
+  const sessionId = isEmployeeRole ? 'employee_session' : 'hr_session';
+
+  // Mock employee ID for self-service (in production, get from auth)
+  const currentEmployeeId = 'EMP-001';
+
+  // Reset chat when switching roles
+  const prevRoleRef = useRef(isEmployeeRole);
+  useEffect(() => {
+    if (prevRoleRef.current !== isEmployeeRole) {
+      prevRoleRef.current = isEmployeeRole;
+      setChatMessages([
+        {
+          role: 'ai',
+          content: isEmployeeRole
+            ? 'مرحباً بك! أنا مساعدك الشخصي في جسر. يمكنني مساعدتك في الاطلاع على راتبك، رصيد إجازاتك، وحالة تأميناتك. كيف أساعدك؟'
+            : 'مرحباً بك! أنا المساعد الذكي لمنصة جسر Pay. كيف يمكنني مساعدتك اليوم؟',
+        },
+      ]);
+    }
+  }, [isEmployeeRole]);
 
   // --- Role-based notifications ---
   const [adminNotifications, setAdminNotifications] = useState<NotificationType[]>([
@@ -112,21 +145,24 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     setIsNotificationsOpen(false);
   }, []);
 
-  const handleSendMessage = () => {
-    if (!chatInput.trim()) return;
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || isTyping) return;
     const userMessage = chatInput;
     setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setChatInput('');
     setIsChatOpen(true);
     setIsTyping(true);
-    const delay = 800 + Math.random() * 1200;
-    setTimeout(() => {
-      setIsTyping(false);
-      setChatMessages(prev => [...prev, {
-        role: 'ai',
-        content: getAIResponse(userMessage)
-      }]);
-    }, delay);
+
+    const agentType = isEmployeeRole ? 'employee' : 'hr';
+    const reply = await sendMessageToAgent(
+      userMessage,
+      agentType,
+      sessionId,
+      isEmployeeRole ? currentEmployeeId : undefined
+    );
+
+    setIsTyping(false);
+    setChatMessages(prev => [...prev, { role: 'ai', content: reply }]);
   };
 
   return (
@@ -191,16 +227,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <input
                 className="flex-grow bg-transparent border-none text-white font-body-sm focus:ring-0 outline-none placeholder-outline-variant px-md h-full rtl:text-right min-w-0"
                 dir="rtl"
-                placeholder="اسأل المساعد الذكي أو ادخل أمرًا..."
+                placeholder={isEmployeeRole ? 'اسأل عن راتبك، إجازاتك، أو تأميناتك...' : 'اسأل المساعد الذكي أو ادخل أمرًا...'}
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSendMessage(); }}
                 onClick={() => { if (!isChatOpen) setIsChatOpen(true); }}
+                disabled={isTyping}
               />
               <button
                 onClick={handleSendMessage}
-                className="w-10 h-10 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-colors shrink-0 mr-2 shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                disabled={isTyping || !chatInput.trim()}
+                className="w-10 h-10 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-colors shrink-0 mr-2 shadow-[0_0_15px_rgba(255,255,255,0.3)] disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-[20px] rtl:-scale-x-100">send</span>
               </button>

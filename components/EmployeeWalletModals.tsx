@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useApp } from './AppContext';
+import { formatNumber } from '@/lib/formatters';
 
 const IC = 'w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-body-sm outline-none focus:border-secondary-container transition';
 
@@ -36,7 +37,7 @@ export function TransferModal({ open, onClose }: { open: boolean; onClose: () =>
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-6" onClick={onClose}>
       <div className="glass-panel w-full max-w-[480px] rounded-3xl border border-white/10 animate-in zoom-in-95 overflow-hidden" dir="rtl" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-white/10 bg-white/[0.02] flex justify-between items-center">
-          <div><h2 className="font-h2 text-white mb-1">تحويل لحساب بنكي</h2><p className="font-body-sm text-outline-variant">الرصيد المتاح: {employeeBalance.toLocaleString()} ر.س</p></div>
+          <div><h2 className="font-h2 text-white mb-1">تحويل لحساب بنكي</h2><p className="font-body-sm text-outline-variant">الرصيد المتاح: {formatNumber(employeeBalance)} ر.س</p></div>
           <button onClick={onClose} className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 text-outline-variant hover:text-white transition border border-white/10 flex items-center justify-center"><span className="material-symbols-outlined">close</span></button>
         </div>
         <div className="p-6 flex flex-col gap-5">

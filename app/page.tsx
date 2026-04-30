@@ -2,6 +2,7 @@
 import AppShell from '@/components/AppShell';
 import { useModal } from '@/components/ModalContext';
 import { useApp } from '@/components/AppContext';
+import { formatNumber } from '@/lib/formatters';
 
 export default function HomePage() {
   return (
@@ -54,19 +55,19 @@ function HomeContent() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-md mb-lg relative z-10">
           <div onClick={() => openModal('net_salary')} className="glass-panel rounded-xl p-md flex flex-col gap-3 cursor-pointer hover:bg-white/10 transition-all hover:-translate-y-1 group">
             <div className="flex justify-between items-center"><div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary-container border border-secondary-container/30"><span className="material-symbols-outlined text-[20px]">payments</span></div><span className="material-symbols-outlined text-outline-variant text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">open_in_new</span></div>
-            <div><h3 className="font-label-sm text-outline-variant mb-1">صافي الرواتب</h3><div className="font-h3 text-white flex gap-1 items-baseline">{totalNet.toLocaleString()} <span className="font-label-sm text-outline-variant">ر.س</span></div></div>
+            <div><h3 className="font-label-sm text-outline-variant mb-1">صافي الرواتب</h3><div className="font-h3 text-white flex gap-1 items-baseline">{formatNumber(totalNet)} <span className="font-label-sm text-outline-variant">ر.س</span></div></div>
           </div>
           <div onClick={() => openModal('bonuses')} className="glass-panel rounded-xl p-md flex flex-col gap-3 cursor-pointer hover:bg-white/10 transition-all hover:-translate-y-1 group">
             <div className="flex justify-between items-center"><div className="w-10 h-10 rounded-full bg-primary-fixed-dim/20 flex items-center justify-center text-primary-fixed-dim border border-primary-fixed-dim/30"><span className="material-symbols-outlined text-[20px]">redeem</span></div><span className="material-symbols-outlined text-outline-variant text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">open_in_new</span></div>
-            <div><h3 className="font-label-sm text-outline-variant mb-1">البدلات والمكافآت</h3><div className="font-h3 text-white flex gap-1 items-baseline">{totalAllow.toLocaleString()} <span className="font-label-sm text-outline-variant">ر.س</span></div></div>
+            <div><h3 className="font-label-sm text-outline-variant mb-1">البدلات والمكافآت</h3><div className="font-h3 text-white flex gap-1 items-baseline">{formatNumber(totalAllow)} <span className="font-label-sm text-outline-variant">ر.س</span></div></div>
           </div>
           <div onClick={() => openModal('deductions')} className="glass-panel rounded-xl p-md flex flex-col gap-3 cursor-pointer hover:bg-white/10 transition-all hover:-translate-y-1 group">
             <div className="flex justify-between items-center"><div className="w-10 h-10 rounded-full bg-error-container/20 flex items-center justify-center text-error-container border border-error-container/30"><span className="material-symbols-outlined text-[20px]">receipt_long</span></div><span className="material-symbols-outlined text-outline-variant text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">open_in_new</span></div>
-            <div><h3 className="font-label-sm text-outline-variant mb-1">الاستقطاعات</h3><div className="font-h3 text-white flex gap-1 items-baseline">{totalDed.toLocaleString()} <span className="font-label-sm text-outline-variant">ر.س</span></div></div>
+            <div><h3 className="font-label-sm text-outline-variant mb-1">الاستقطاعات</h3><div className="font-h3 text-white flex gap-1 items-baseline">{formatNumber(totalDed)} <span className="font-label-sm text-outline-variant">ر.س</span></div></div>
           </div>
           <div onClick={() => openModal('overtime')} className="glass-panel rounded-xl p-md flex flex-col gap-3 cursor-pointer hover:bg-white/10 transition-all hover:-translate-y-1 group">
             <div className="flex justify-between items-center"><div className="w-10 h-10 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center text-tertiary-fixed-dim border border-tertiary-fixed-dim/30"><span className="material-symbols-outlined text-[20px]">more_time</span></div><span className="material-symbols-outlined text-outline-variant text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">open_in_new</span></div>
-            <div><h3 className="font-label-sm text-outline-variant mb-1">العمل الإضافي</h3><div className="font-h3 text-white flex gap-1 items-baseline">{totalOT.toLocaleString()} <span className="font-label-sm text-outline-variant">ر.س</span></div></div>
+            <div><h3 className="font-label-sm text-outline-variant mb-1">العمل الإضافي</h3><div className="font-h3 text-white flex gap-1 items-baseline">{formatNumber(totalOT)} <span className="font-label-sm text-outline-variant">ر.س</span></div></div>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-lg grow relative z-10">
