@@ -111,6 +111,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     if (pathname === '/') return 'dashboard';
     if (pathname === '/employees') return 'employees';
     if (pathname === '/employees/bulk-pay') return 'bulk_pay';
+    if (pathname === '/employees/contracts') return 'contracts';
     if (pathname === '/employees/wallet') return 'wallet';
     if (pathname === '/employees/settings') return 'settings';
     return 'dashboard';
@@ -211,6 +212,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <>
                     <NavItem href="/" icon="dashboard" label="الرئيسية" isActive={activeNav === 'dashboard'} />
                     <NavItem href="/employees/bulk-pay" icon="account_balance" label="الدفع الجماعي" isActive={activeNav === 'bulk_pay'} />
+                    <NavItem href="/employees/contracts" icon="description" label="العقود" isActive={activeNav === 'contracts'} />
                     <NavItem href="/employees" icon="groups" label="إدارة الموظفين" isActive={activeNav === 'employees'} />
                   </>
                 ) : (
